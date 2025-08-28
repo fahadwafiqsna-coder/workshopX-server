@@ -1,0 +1,473 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Workshop Full-Stack API",
+    "version": "1.0.0",
+    "description": "API for full-stack app with Auth, Blogs, Offers, and User Management"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "format": "password" }
+        },
+        "required": ["username", "email", "password"]
+      },
+      "Blog": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "image": { "type": "string" }
+        },
+        "required": ["title", "content"]
+      },
+      "Offer": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "image": { "type": "string" }
+        },
+        "required": ["title", "description"]
+      }
+    }
+  },
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "your_jwt_token",
+                  "user": {
+                    "_id": "userId",
+                    "username": "john_doe",
+                    "email": "john@example.com",
+                    "isVerified": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or email already exists"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login an existing user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "your_jwt_token",
+                  "user": {
+                    "_id": "userId",
+                    "username": "john_doe",
+                    "email": "john@example.com"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          },
+          "403": {
+            "description": "Email not verified or account blocked"
+          }
+        }
+      }
+    },
+    "/auth/verify-email": {
+      "get": {
+        "summary": "Verify email using token",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified successfully"
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "summary": "Send password reset email",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset email sent successfully"
+          },
+          "400": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "summary": "Change password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "oldPassword": { "type": "string" },
+                  "newPassword": { "type": "string" }
+                },
+                "required": ["oldPassword", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully"
+          },
+          "400": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/blogs": {
+      "post": {
+        "summary": "Create a new blog",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Blog"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Blog created successfully"
+          },
+          "400": {
+            "description": "Validation or upload error"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all blogs",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of blogs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Blog"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/offers": {
+      "post": {
+        "summary": "Create a new offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Offer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Offer created successfully"
+          },
+          "400": {
+            "description": "Validation or upload error"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all offers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of offers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Offer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "delete": {
+        "summary": "Soft delete a user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User soft deleted"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/{id}/block": {
+      "patch": {
+        "summary": "Toggle block/unblock a user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User status toggled",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User blocked"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/contacts": {
+      "post": {
+        "summary": "Submit a contact form",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "vehicleModel": { "type": "string" }
+                },
+                "required": ["name", "email", "vehicleModel"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Contact created"
+          },
+          "400": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all contact submissions (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of contacts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "email": { "type": "string" },
+                      "vehicleModel": { "type": "string" },
+                      "isRead": { "type": "boolean" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{id}/read": {
+      "patch": {
+        "summary": "Mark contact as read (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "isRead": true
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contact not found"
+          }
+        }
+      }
+    }
+  }
+}

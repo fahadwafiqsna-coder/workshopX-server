@@ -1,0 +1,26 @@
+# Dependency directories
+node_modules/
+
+# Environment files
+.env
+
+# Logs
+npm-debug.log
+yarn-error.log
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS system files
+.DS_Store
+
+# Build output
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.bak
