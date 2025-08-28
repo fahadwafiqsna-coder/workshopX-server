@@ -12,7 +12,7 @@ const swaggerDocument = require("./swagger.json");
 const app = express();
 
 const allowedOrigins = [
-  "*",
+  // "*",
   "http://localhost:3000",
   process.env.FRONTEND_URL,
 ];
